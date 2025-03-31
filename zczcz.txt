@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS İzləmə</title>
+</head>
+<body>
+    <h2>GPS İzləmə Sistemi</h2>
+    <p>GPS məlumatlarını göndərmək üçün aşağıdakı düyməyə basın:</p>
+    <button onclick="getLocation()">Mənim Yerimi Paylaş</button>
+    <p id="status"></p>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendLocation, showError);
+            } else {
+                document.getElementById("status").innerHTML = "Sizin cihaz GPS-i dəstəkləmir.";
+            }
+        }
+
+        function sendLocation(position) {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+
+            document.getElementById("status").innerHTML = `Koordinatlar: ${lat}, ${lon}`;
+
+            // Məlumatları serverə göndər
+            fetch('https://api.webhook.site/YOUR_UNIQUE_URL', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ latitude: lat, longitude: lon })
+            })
+            .then(response => response.text())
+            .then(data => console.log("Məlumat göndərildi:", data))
+            .catch(error => console.error("Xəta:", error));
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("status").innerHTML = "İstifadəçi GPS icazəsini rədd etdi.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("status").innerHTML = "GPS mövqeyi tapılmadı.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("status").innerHTML = "GPS sorğusu zaman aşımına uğradı.";
+                    break;
+                default:
+                    document.getElementById("status").innerHTML = "Bilinməyən xəta.";
+            }
+        }
+    </script>
+</body>
+</html>
+
+
